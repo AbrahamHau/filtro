@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filtro Político</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f1923" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────── */
+    :root {
+      --bg:        #0f1923;
+      --surface:   #172130;
+      --border:    #243447;
+      --accent:    #e8c84a;
+      --accent-dim:#a98e2e;
+      --text:      #dce8f0;
+      --muted:     #6b8599;
+      --danger:    #e05252;
+      --success:   #4caf7d;
+      --radius:    6px;
+      --mono:      "JetBrains Mono", "Courier New", monospace;
+      --sans:      "Inter", system-ui, sans-serif;
+    }
+
+    /* ── Reset ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header .logo {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--accent);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    header h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    main {
+      flex: 1;
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── Card ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-family: var(--mono);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Config row ─────────────────────────────────────────────── */
+    .config-row {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .config-row label {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+    .config-row input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: .85rem;
+      padding: .6rem .8rem;
+      width: 100%;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .config-row input:focus { border-color: var(--accent); }
+    .hint { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ── Drop zone ──────────────────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(232,200,74,.04);
+    }
+    .drop-zone .icon { font-size: 2rem; margin-bottom: .75rem; }
+    .drop-zone p { color: var(--muted); font-size: .9rem; }
+    .drop-zone strong { color: var(--accent); }
+    #file-input { display: none; }
+
+    /* ── Column selector ────────────────────────────────────────── */
+    #col-selector { display: none; }
+    #col-selector select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: .9rem;
+      padding: .6rem .8rem;
+      width: 100%;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ── Saludos/insultos editor ────────────────────────────────── */
+    details summary {
+      cursor: pointer;
+      font-size: .8rem;
+      color: var(--muted);
+      user-select: none;
+      margin-bottom: .75rem;
+    }
+    details summary:hover { color: var(--text); }
+    .tag-editor {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-bottom: .75rem;
+    }
+    .tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: .2rem .65rem;
+      font-size: .75rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .tag button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .75rem;
+      padding: 0;
+      line-height: 1;
+    }
+    .tag button:hover { color: var(--danger); }
+    .add-tag {
+      display: flex;
+      gap: .5rem;
+    }
+    .add-tag input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: .8rem;
+      padding: .4rem .7rem;
+      outline: none;
+    }
+    .add-tag input:focus { border-color: var(--accent); }
+    .add-tag button {
+      background: var(--border);
+      border: none;
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: .8rem;
+      padding: .4rem .8rem;
+      cursor: pointer;
+    }
+    .add-tag button:hover { background: var(--accent); color: var(--bg); }
+
+    /* ── Botón principal ────────────────────────────────────────── */
+    #btn-analizar {
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: var(--bg);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: .85rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      padding: .85rem 2rem;
+      text-transform: uppercase;
+      transition: background .2s, opacity .2s;
+      width: 100%;
+    }
+    #btn-analizar:disabled { opacity: .4; cursor: not-allowed; }
+    #btn-analizar:not(:disabled):hover { background: #f5d968; }
+
+    /* ── Progress ───────────────────────────────────────────────── */
+    #progress-section { display: none; }
+    .progress-bar-wrap {
+      background: var(--bg);
+      border-radius: 100px;
+      height: 6px;
+      overflow: hidden;
+      margin-bottom: .75rem;
+    }
+    .progress-bar-fill {
+      background: var(--accent);
+      height: 100%;
+      width: 0%;
+      transition: width .3s;
+    }
+    .progress-label {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    /* ── Results ────────────────────────────────────────────────── */
+    #results-section { display: none; }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem 1rem;
+      text-align: center;
+    }
+    .stat .num {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat .lbl {
+      font-size: .7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-top: .2rem;
+    }
+
+    .results-table-wrap {
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+    th {
+      font-family: var(--mono);
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: .6rem .75rem;
+      border-bottom: 1px solid rgba(36,52,71,.5);
+      vertical-align: top;
+      max-width: 400px;
+      word-break: break-word;
+    }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── Download button ────────────────────────────────────────── */
+    #btn-descargar {
+      background: none;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--accent);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      padding: .7rem 1.5rem;
+      text-transform: uppercase;
+      transition: background .2s, color .2s;
+    }
+    #btn-descargar:hover { background: var(--accent); color: var(--bg); }
+
+    /* ── Error ──────────────────────────────────────────────────── */
+    #error-box {
+      display: none;
+      background: rgba(224,82,82,.1);
+      border: 1px solid var(--danger);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: .85rem;
+      color: var(--danger);
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 500px) {
+      header { padding: 1rem; }
+      main { padding: 1rem; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">v1.0</span>
+  <h1>Filtro Político</h1>
+</header>
+
+<main>
+
+  <!-- Config -->
+  <div class="card">
+    <p class="card-title">Configuración</p>
+    <div class="config-row">
+      <label>URL del Worker (Cloudflare)</label>
+      <input id="worker-url" type="url"
+        placeholder="https://filtro-politico.tuusuario.workers.dev/clasificar" />
+      <span class="hint">Guarda la URL de tu Worker aquí — se recuerda en este navegador.</span>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <p class="card-title">Archivo de comentarios</p>
+    <div class="drop-zone" id="drop-zone">
+      <div class="icon">📂</div>
+      <p>Arrastra tu archivo aquí o <strong>haz clic para seleccionar</strong></p>
+      <p style="margin-top:.4rem;font-size:.8rem">CSV o Excel (.xlsx)</p>
+    </div>
+    <input type="file" id="file-input" accept=".csv,.xlsx" />
+
+    <div id="col-selector" style="margin-top:1rem">
+      <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:.4rem">
+        Columna con los comentarios
+      </label>
+      <select id="col-select"></select>
+    </div>
+  </div>
+
+  <!-- Filtros editables -->
+  <div class="card">
+    <p class="card-title">Filtros locales</p>
+
+    <details open>
+      <summary>Palabras de saludo (se eliminan antes de enviar a la IA)</summary>
+      <div class="tag-editor" id="tags-saludos"></div>
+      <div class="add-tag">
+        <input id="input-saludo" type="text" placeholder="agregar saludo..." />
+        <button onclick="agregarTag('saludos')">+ Agregar</button>
+      </div>
+    </details>
+
+    <details style="margin-top:1rem">
+      <summary>Palabras bloqueadas (insultos)</summary>
+      <div class="tag-editor" id="tags-insultos"></div>
+      <div class="add-tag">
+        <input id="input-insulto" type="text" placeholder="agregar palabra..." />
+        <button onclick="agregarTag('insultos')">+ Agregar</button>
+      </div>
+    </details>
+  </div>
+
+  <!-- Error -->
+  <div id="error-box"></div>
+
+  <!-- Botón -->
+  <button id="btn-analizar" disabled>Analizar comentarios</button>
+
+  <!-- Progress -->
+  <div class="card" id="progress-section">
+    <p class="card-title">Procesando</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <span class="progress-label" id="progress-label">Preparando...</span>
+  </div>
+
+  <!-- Results -->
+  <div class="card" id="results-section">
+    <p class="card-title">Resultados</p>
+    <div class="stats-row">
+      <div class="stat"><div class="num" id="stat-original">—</div><div class="lbl">Originales</div></div>
+      <div class="stat"><div class="num" id="stat-filtrados">—</div><div class="lbl">Tras limpieza</div></div>
+      <div class="stat"><div class="num" id="stat-peticiones">—</div><div class="lbl">Peticiones</div></div>
+    </div>
+    <div class="results-table-wrap">
+      <table id="results-table">
+        <thead><tr id="table-head"></tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <button id="btn-descargar">⬇ Descargar CSV</button>
+  </div>
+
+</main>
+
+<!-- SheetJS para leer Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+// ── Estado ───────────────────────────────────────────────────────────
+let datosOriginales = [];   // filas del CSV/Excel
+let columnas = [];
+let datosFiltrados = [];
+let peticionesFinales = [];
+
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+// ── Defaults filtros ─────────────────────────────────────────────────
+const DEFAULTS = {
+  saludos: ["hola","buenas","buen día","hey","saludos","hi","hello","jajaja","lol","xd"],
+  insultos: ["idiota","estúpido","imbécil","pendejo","basura","mierda","puto","hdp","ctm"],
+};
+
+let filtros = {
+  saludos: LS.get("filtros_saludos") || [...DEFAULTS.saludos],
+  insultos: LS.get("filtros_insultos") || [...DEFAULTS.insultos],
+};
+
+// ── Worker URL persistente ────────────────────────────────────────────
+const workerInput = document.getElementById("worker-url");
+workerInput.value = LS.get("worker_url") || "";
+workerInput.addEventListener("input", () => LS.set("worker_url", workerInput.value.trim()));
+
+// ── Render tags ──────────────────────────────────────────────────────
+function renderTags(tipo) {
+  const container = document.getElementById(`tags-${tipo}`);
+  container.innerHTML = filtros[tipo].map((w, i) =>
+    `<span class="tag">${w}<button onclick="quitarTag('${tipo}',${i})">✕</button></span>`
+  ).join("");
+  LS.set(`filtros_${tipo}`, filtros[tipo]);
+}
+
+function agregarTag(tipo) {
+  const input = document.getElementById(`input-${tipo === "saludos" ? "saludo" : "insulto"}`);
+  const val = input.value.trim().toLowerCase();
+  if (val && !filtros[tipo].includes(val)) {
+    filtros[tipo].push(val);
+    renderTags(tipo);
+  }
+  input.value = "";
+}
+
+function quitarTag(tipo, idx) {
+  filtros[tipo].splice(idx, 1);
+  renderTags(tipo);
+}
+
+// Enter en inputs de tags
+["input-saludo","input-insulto"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", e => {
+    if (e.key === "Enter") agregarTag(id === "input-saludo" ? "saludos" : "insultos");
+  });
+});
+
+renderTags("saludos");
+renderTags("insultos");
+
+
+// ── Drop zone ────────────────────────────────────────────────────────
+const dropZone = document.getElementById("drop-zone");
+const fileInput = document.getElementById("file-input");
+
+dropZone.addEventListener("click", () => fileInput.click());
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  if (e.dataTransfer.files[0]) procesarArchivo(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener("change", () => { if (fileInput.files[0]) procesarArchivo(fileInput.files[0]); });
+
+
+// ── Leer archivo ─────────────────────────────────────────────────────
+async function procesarArchivo(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  const buffer = await file.arrayBuffer();
+
+  let filas;
+  if (ext === "csv") {
+    const text = new TextDecoder("utf-8").decode(buffer);
+    filas = csvAObjetos(text);
+  } else {
+    const wb = XLSX.read(buffer, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    filas = XLSX.utils.sheet_to_json(ws, { defval: "" });
+  }
+
+  if (!filas.length) { mostrarError("El archivo está vacío."); return; }
+
+  datosOriginales = filas;
+  columnas = Object.keys(filas[0]);
+
+  // Mostrar selector de columna
+  const sel = document.getElementById("col-select");
+  sel.innerHTML = columnas.map(c => `<option value="${c}">${c}</option>`).join("");
+  document.getElementById("col-selector").style.display = "block";
+
+  dropZone.querySelector("p").textContent = `✓ ${file.name} — ${filas.length} comentarios`;
+  ocultarError();
+  checkListo();
+}
+
+function csvAObjetos(text) {
+  const lineas = text.split(/\r?\n/).filter(Boolean);
+  if (lineas.length < 2) return [];
+  const encabezados = lineas[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+  return lineas.slice(1).map(linea => {
+    const vals = linea.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+    return Object.fromEntries(encabezados.map((h, i) => [h, vals[i] || ""]));
+  });
+}
+
+
+// ── Limpieza local ───────────────────────────────────────────────────
+function normalizar(t) {
+  return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
+function esSaludo(texto) {
+  const t = normalizar(texto);
+  return filtros.saludos.some(s => t.startsWith(s) || t === s);
+}
+
+function tieneInsulto(texto) {
+  const t = normalizar(texto);
+  return filtros.insultos.some(i => new RegExp(`\\b${i}\\b`).test(t));
+}
+
+function limpiarLocalmente(filas, col) {
+  const vistos = new Set();
+  return filas.filter(fila => {
+    const t = (fila[col] || "").toString().trim();
+    if (!t) return false;
+    if (esSaludo(t)) return false;
+    if (tieneInsulto(t)) return false;
+    const n = normalizar(t);
+    if (vistos.has(n)) return false;
+    vistos.add(n);
+    return true;
+  });
+}
+
+
+// ── Botón analizar ───────────────────────────────────────────────────
+function checkListo() {
+  const listo = datosOriginales.length > 0 && workerInput.value.trim();
+  document.getElementById("btn-analizar").disabled = !listo;
+}
+workerInput.addEventListener("input", checkListo);
+
+document.getElementById("btn-analizar").addEventListener("click", analizar);
+
+async function analizar() {
+  ocultarError();
+  const col = document.getElementById("col-select").value;
+  const workerUrl = workerInput.value.trim();
+
+  // 1. Limpieza local
+  setProgreso(10, "Limpiando localmente...");
+  mostrarProgreso(true);
+  datosFiltrados = limpiarLocalmente(datosOriginales, col);
+
+  // 2. Enviar a Worker
+  setProgreso(30, `Enviando ${datosFiltrados.length} comentarios al Worker...`);
+
+  const comentarios = datosFiltrados.map(f => (f[col] || "").toString());
+
+  let resultados;
+  try {
+    const res = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comentarios }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+
+    const data = await res.json();
+    resultados = data.resultados;
+  } catch (err) {
+    mostrarProgreso(false);
+    mostrarError(`Error al contactar el Worker: ${err.message}`);
+    return;
+  }
+
+  setProgreso(90, "Procesando resultados...");
+
+  // 3. Filtrar peticiones
+  peticionesFinales = datosFiltrados.filter((_, i) => resultados[i] === "PETICION");
+
+  setProgreso(100, "Listo.");
+  setTimeout(() => mostrarProgreso(false), 600);
+
+  mostrarResultados(col);
+}
+
+
+// ── UI helpers ───────────────────────────────────────────────────────
+function setProgreso(pct, label) {
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-label").textContent = label;
+}
+
+function mostrarProgreso(show) {
+  document.getElementById("progress-section").style.display = show ? "block" : "none";
+}
+
+function mostrarError(msg) {
+  const box = document.getElementById("error-box");
+  box.textContent = msg;
+  box.style.display = "block";
+}
+
+function ocultarError() {
+  document.getElementById("error-box").style.display = "none";
+}
+
+function mostrarResultados(col) {
+  document.getElementById("stat-original").textContent = datosOriginales.length;
+  document.getElementById("stat-filtrados").textContent = datosFiltrados.length;
+  document.getElementById("stat-peticiones").textContent = peticionesFinales.length;
+
+  // Tabla
+  const thead = document.getElementById("table-head");
+  const tbody = document.getElementById("table-body");
+  thead.innerHTML = columnas.map(c => `<th>${c}</th>`).join("");
+  tbody.innerHTML = peticionesFinales.map(fila =>
+    `<tr>${columnas.map(c => `<td>${fila[c] ?? ""}</td>`).join("")}</tr>`
+  ).join("");
+
+  document.getElementById("results-section").style.display = "block";
+  document.getElementById("results-section").scrollIntoView({ behavior: "smooth" });
+}
+
+
+// ── Descargar CSV ────────────────────────────────────────────────────
+document.getElementById("btn-descargar").addEventListener("click", () => {
+  if (!peticionesFinales.length) return;
+  const encabezados = columnas.join(",");
+  const filas = peticionesFinales.map(f =>
+    columnas.map(c => `"${(f[c] ?? "").toString().replace(/"/g, '""')}"`).join(",")
+  );
+  const csv = [encabezados, ...filas].join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "peticiones_politicas.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
