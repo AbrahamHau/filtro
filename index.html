@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Filtro Político</title>
+  <title>Análisis de comentarios</title>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#0f1923"/>
   <style>
     :root {
-      --bg: #0f1923; --surface: #172130; --border: #243447;
-      --accent: #e8c84a; --text: #dce8f0; --muted: #6b8599;
-      --danger: #e05252; --success: #4caf7d; --radius: 6px;
+      --bg: rgb(0, 0, 0); --surface: rgb(98, 19, 51); --border: rgb(23, 27, 30);
+      --accent: #e8c84a; --text: rgb(255,255,255); --muted: rgb(255, 255, 255);
+      --danger: #e05252; --success: #4caf7d; --radius: 20px;
       --mono: "JetBrains Mono","Courier New",monospace;
       --sans: "Inter",system-ui,sans-serif;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    *,*::before,*::after{box-sizing:border-box;margin:0;;padding:0}
     body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
     header{border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;gap:1rem}
     .logo{font-family:var(--mono);font-size:.75rem;color:var(--accent);letter-spacing:.15em;text-transform:uppercase}
@@ -23,13 +23,13 @@
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
     .card-title{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
     label{font-size:.8rem;color:var(--muted);display:block;margin-bottom:.4rem}
-    input[type=text],input[type=url],select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:.85rem;padding:.6rem .8rem;width:100%;outline:none;transition:border-color .2s}
+    input[type=text],input[type=url],select{background:var(rgb(255,255,255));border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:.85rem;padding:.6rem .8rem;width:100%;outline:none;transition:border-color .2s}
     input:focus,select:focus{border-color:var(--accent)}
     .hint{font-size:.73rem;color:var(--muted);margin-top:.25rem}
     .row{display:flex;gap:.75rem;align-items:flex-end}
     .row>*{flex:1}
     .drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
-    .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(232,200,74,.04)}
+    .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(232,200,74,.3)}
     .drop-zone .icon{font-size:1.8rem;margin-bottom:.5rem}
     .drop-zone p{color:var(--muted);font-size:.88rem}
     .drop-zone strong{color:var(--accent)}
@@ -73,42 +73,42 @@
   </style>
 </head>
 <body>
- 
+
 <header>
-  <span class="logo">v2.0</span>
-  <h1>Filtro Político</h1>
+  <span class="logo">Beta 1.0</span>
+  <h1>Análsis FB Live</h1>
 </header>
- 
+
 <main>
- 
+
   <!-- Config -->
   <div class="card">
     <p class="card-title">Configuración</p>
     <div style="margin-bottom:1rem">
-      <label>URL del Worker (Cloudflare)</label>
-      <input id="worker-url" type="url" placeholder="https://filtro-politico.tuusuario.workers.dev"/>
+      <label>URL del Worker</label>
+      <input id="worker-url" type="url" placeholder="URL"/>
       <span class="hint">Se guarda en este navegador.</span>
     </div>
     <div>
-      <label>Título del Live (para el reporte)</label>
-      <input id="titulo-live" type="text" placeholder="LIVE DEL GOBERNADOR, LUNES 01-06-2026"/>
+      <label>Título para el reporte</label>
+      <input id="titulo-live" type="text" placeholder="Live Gobernador..."/>
     </div>
   </div>
- 
+
   <!-- Catálogo de dependencias -->
   <div class="card">
     <p class="card-title">Catálogo de dependencias</p>
     <div style="margin-bottom:.75rem">
       <label>URL de Google Sheets (exportar como CSV)</label>
       <div class="row">
-        <input id="sheets-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/ID/export?format=csv"/>
+        <input id="sheets-url" type="url" placeholder="URL"/>
         <button class="btn-sm" onclick="cargarDependencias()">⬇ Cargar</button>
       </div>
       <span class="hint">El Sheet debe ser público ("Cualquiera con el enlace puede ver"). Columnas esperadas: SIGLA, NOMBRE</span>
     </div>
     <p id="dep-status" class="dep-status">Sin catálogo cargado.</p>
   </div>
- 
+
   <!-- Archivo de comentarios -->
   <div class="card">
     <p class="card-title">Comentarios del Live</p>
@@ -123,7 +123,7 @@
       <select id="col-select"></select>
     </div>
   </div>
- 
+
   <!-- Filtros locales -->
   <div class="card">
     <p class="card-title">Filtros locales (limpieza antes de la IA)</p>
@@ -144,17 +144,17 @@
       </div>
     </details>
   </div>
- 
+
   <div id="error-box"></div>
   <button id="btn-analizar" disabled>Analizar comentarios</button>
- 
+
   <!-- Progress -->
   <div class="card" id="progress-section">
     <p class="card-title">Procesando</p>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
     <span class="progress-label" id="progress-label">Preparando...</span>
   </div>
- 
+
   <!-- Resultados -->
   <div class="card" id="results-section">
     <p class="card-title">Resultados</p>
@@ -173,43 +173,43 @@
     </div>
     <button id="btn-descargar">⬇ Descargar Excel (formato reporte)</button>
   </div>
- 
+
 </main>
- 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
- 
+
 // ── Storage helpers ───────────────────────────────────────────────────
 const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
 };
- 
+
 // ── Estado global ─────────────────────────────────────────────────────
 let datosOriginales = [];
 let datosFiltrados  = [];
 let peticionesFinales = [];  // [{fila_original, dep1, dep2, dep3}, ...]
 let dependencias = [];       // [{sigla, nombre}, ...]
- 
+
 // ── Persistir config ──────────────────────────────────────────────────
 const workerInput  = document.getElementById("worker-url");
 const tituloInput  = document.getElementById("titulo-live");
 const sheetsInput  = document.getElementById("sheets-url");
- 
+
 workerInput.value = LS.get("worker_url") || "";
 tituloInput.value = LS.get("titulo_live") || "";
 sheetsInput.value = LS.get("sheets_url") || "";
- 
+
 workerInput.addEventListener("input", () => { LS.set("worker_url", workerInput.value.trim()); checkListo(); });
 tituloInput.addEventListener("input", () => LS.set("titulo_live", tituloInput.value.trim()));
 sheetsInput.addEventListener("input", () => LS.set("sheets_url",  sheetsInput.value.trim()));
- 
+
 // ── Catálogo de dependencias ──────────────────────────────────────────
 async function cargarDependencias() {
   const url = sheetsInput.value.trim();
   const status = document.getElementById("dep-status");
   if (!url) { status.textContent = "Ingresa la URL del Sheet."; status.className = "dep-status err"; return; }
- 
+
   status.textContent = "Cargando..."; status.className = "dep-status";
   try {
     const res = await fetch(url);
@@ -217,16 +217,16 @@ async function cargarDependencias() {
     const text = await res.text();
     const filas = csvAObjetos(text);
     if (!filas.length) throw new Error("El Sheet está vacío");
- 
+
     // Buscar columnas SIGLA y NOMBRE (case-insensitive)
     const cols = Object.keys(filas[0]);
     const colSigla  = cols.find(c => c.trim().toUpperCase() === "SIGLA")  || cols[0];
     const colNombre = cols.find(c => c.trim().toUpperCase() === "NOMBRE") || cols[1];
- 
+
     dependencias = filas
       .map(f => ({ sigla: (f[colSigla] || "").trim().toUpperCase(), nombre: (f[colNombre] || "").trim() }))
       .filter(d => d.sigla);
- 
+
     status.textContent = `✓ ${dependencias.length} dependencias cargadas.`;
     status.className = "dep-status ok";
     checkListo();
@@ -235,7 +235,7 @@ async function cargarDependencias() {
     status.className = "dep-status err";
   }
 }
- 
+
 // ── Filtros locales ───────────────────────────────────────────────────
 const DEFAULTS = {
   saludos:  ["hola","buenas","buen día","hey","saludos","hi","hello","jajaja","lol","xd"],
@@ -245,7 +245,7 @@ let filtros = {
   saludos:  LS.get("filtros_saludos")  || [...DEFAULTS.saludos],
   insultos: LS.get("filtros_insultos") || [...DEFAULTS.insultos],
 };
- 
+
 function renderTags(tipo) {
   document.getElementById(`tags-${tipo}`).innerHTML = filtros[tipo].map((w,i) =>
     `<span class="tag">${w}<button onclick="quitarTag('${tipo}',${i})">✕</button></span>`
@@ -265,7 +265,7 @@ function quitarTag(tipo, idx) { filtros[tipo].splice(idx,1); renderTags(tipo); }
   });
 });
 renderTags("saludos"); renderTags("insultos");
- 
+
 // ── Drop zone ─────────────────────────────────────────────────────────
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("file-input");
@@ -274,7 +274,7 @@ dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classL
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
 dropZone.addEventListener("drop", e => { e.preventDefault(); dropZone.classList.remove("drag-over"); if(e.dataTransfer.files[0]) procesarArchivo(e.dataTransfer.files[0]); });
 fileInput.addEventListener("change", () => { if(fileInput.files[0]) procesarArchivo(fileInput.files[0]); });
- 
+
 async function procesarArchivo(file) {
   const ext = file.name.split(".").pop().toLowerCase();
   const buf = await file.arrayBuffer();
@@ -294,7 +294,7 @@ async function procesarArchivo(file) {
   dropZone.querySelector("p").textContent = `✓ ${file.name} — ${filas.length} comentarios`;
   ocultarError(); checkListo();
 }
- 
+
 function csvAObjetos(text) {
   const lineas = text.split(/\r?\n/).filter(Boolean);
   if (lineas.length < 2) return [];
@@ -304,14 +304,14 @@ function csvAObjetos(text) {
     return Object.fromEntries(enc.map((h,i) => [h, vals[i]||""]));
   });
 }
- 
+
 // ── Limpieza local ────────────────────────────────────────────────────
 function normalizar(t) {
   return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
 }
 function esSaludo(t) { const n=normalizar(t); return filtros.saludos.some(s=>n.startsWith(s)||n===s); }
 function tieneInsulto(t) { const n=normalizar(t); return filtros.insultos.some(i=>new RegExp(`\\b${i}\\b`).test(n)); }
- 
+
 function limpiarLocalmente(filas, col) {
   const vistos = new Set();
   return filas.filter(f => {
@@ -322,39 +322,39 @@ function limpiarLocalmente(filas, col) {
     vistos.add(n); return true;
   });
 }
- 
+
 // ── Analizar ──────────────────────────────────────────────────────────
 function checkListo() {
   const ok = datosOriginales.length > 0 && workerInput.value.trim() && dependencias.length > 0;
   document.getElementById("btn-analizar").disabled = !ok;
 }
- 
+
 document.getElementById("btn-analizar").addEventListener("click", analizar);
- 
-const TAMANO_BATCH = 5;
-const PAUSA_MS = 15000;
- 
+
+const TAMANO_BATCH = 1;
+const PAUSA_MS = 2000;
+
 async function analizar() {
   ocultarError();
   const col = document.getElementById("col-select").value;
   const workerUrl = workerInput.value.trim();
- 
+
   setProgreso(5, "Limpiando localmente...");
   mostrarProgreso(true);
- 
+
   datosFiltrados = limpiarLocalmente(datosOriginales, col);
- 
+
   const comentarios = datosFiltrados.map(f => (f[col]||"").toString());
   const totalBatches = Math.ceil(comentarios.length / TAMANO_BATCH);
   const todosResultados = [];
- 
+
   for (let i = 0; i < comentarios.length; i += TAMANO_BATCH) {
     const batch = comentarios.slice(i, i + TAMANO_BATCH);
     const numBatch = Math.floor(i / TAMANO_BATCH) + 1;
     const pct = Math.round(10 + (numBatch / totalBatches) * 85);
- 
-    setProgreso(pct, `Batch ${numBatch} de ${totalBatches} (${i + batch.length}/${comentarios.length} comentarios)...`);
- 
+
+    setProgreso(pct, `Comentario ${numBatch} de ${totalBatches}...`);
+
     try {
       const res = await fetch(workerUrl, {
         method: "POST",
@@ -365,23 +365,23 @@ async function analizar() {
       const data = await res.json();
       todosResultados.push(...data.resultados);
     } catch(e) {
-      mostrarProgreso(false); mostrarError(`Error en batch ${numBatch}: ${e.message}`); return;
+      mostrarProgreso(false); mostrarError(`Error en comentario ${numBatch}: ${e.message}`); return;
     }
- 
+
     if (i + TAMANO_BATCH < comentarios.length) {
       await new Promise(r => setTimeout(r, PAUSA_MS));
     }
   }
- 
+
   peticionesFinales = datosFiltrados
     .map((fila, i) => ({ fila, ...todosResultados[i] }))
     .filter(r => r.clasificacion === "PETICION");
- 
+
   setProgreso(100, "Listo.");
   setTimeout(() => mostrarProgreso(false), 600);
   mostrarResultados(col);
 }
- 
+
 // ── UI helpers ────────────────────────────────────────────────────────
 function setProgreso(p, lbl) {
   document.getElementById("progress-fill").style.width = p+"%";
@@ -390,12 +390,12 @@ function setProgreso(p, lbl) {
 function mostrarProgreso(show) { document.getElementById("progress-section").style.display = show?"block":"none"; }
 function mostrarError(msg) { const b=document.getElementById("error-box"); b.textContent=msg; b.style.display="block"; }
 function ocultarError() { document.getElementById("error-box").style.display="none"; }
- 
+
 function mostrarResultados(col) {
   document.getElementById("stat-original").textContent   = datosOriginales.length;
   document.getElementById("stat-filtrados").textContent  = datosFiltrados.length;
   document.getElementById("stat-peticiones").textContent = peticionesFinales.length;
- 
+
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = peticionesFinales.map((r, i) =>
     `<tr>
@@ -406,19 +406,19 @@ function mostrarResultados(col) {
       <td>${r.dep3 ? `<span class="badge">${r.dep3}</span>` : "—"}</td>
     </tr>`
   ).join("");
- 
+
   document.getElementById("results-section").style.display = "block";
   document.getElementById("results-section").scrollIntoView({ behavior:"smooth" });
 }
- 
+
 // ── Exportar Excel con formato reporte ───────────────────────────────
 document.getElementById("btn-descargar").addEventListener("click", exportarExcel);
- 
+
 function exportarExcel() {
   if (!peticionesFinales.length) return;
- 
+
   const wb = XLSX.utils.book_new();
- 
+
   // ── Hoja 1: peticiones ───────────────────────────────────────────
   const titulo = tituloInput.value.trim() || "LIVE DEL GOBERNADOR";
   const encabezados = [
@@ -428,13 +428,13 @@ function exportarExcel() {
     "NIVEL DE IMPORTANCIA","SIGLAS","SIGLAS DEP_1","SIGLAS DEP_2","SIGLAS DEP_3",
     "DEPENDENCIAS","RESPUESTA BRINDADA","LINK LIVE"
   ];
- 
+
   const filas = peticionesFinales.map((r, i) => {
     // Buscar nombre de dependencias por sigla
     const getNombre = s => dependencias.find(d => d.sigla === s)?.nombre || s;
     const deps = [r.dep1, r.dep2, r.dep3].filter(Boolean);
     const depNombres = deps.map(getNombre).join(", ");
- 
+
     return [
       i+1, "", "", "", "", "", "", "", "", "", "", "",
       "", "", "", "", "", r.fila[document.getElementById("col-select").value] || "",
@@ -442,26 +442,26 @@ function exportarExcel() {
       depNombres, "", ""
     ];
   });
- 
+
   const wsData = [[titulo], encabezados, ...filas];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
- 
+
   // Merge fila 1 (A1:Z1)
   ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:25} }];
- 
+
   // Estilos — usando write_xlsx con estilos básicos vía cell styles
   const headerFill = { patternType:"solid", fgColor:{ rgb:"800000" } };
   const headerFont = { bold:false, color:{ rgb:"FFFFFF" }, sz:9 };
   const titleFont  = { sz:26, color:{ rgb:"800000" } };
   const titleAlign = { horizontal:"center", vertical:"center" };
   const headerAlign = { horizontal:"center", vertical:"center", wrapText:true };
- 
+
   // Aplicar estilo a fila 1 (título)
   const titleCell = ws["A1"];
   if (titleCell) {
     titleCell.s = { font: titleFont, alignment: titleAlign };
   }
- 
+
   // Aplicar estilo a fila 2 (encabezados)
   const colLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   colLetters.split("").forEach((l, ci) => {
@@ -470,7 +470,7 @@ function exportarExcel() {
       ws[addr].s = { fill: headerFill, font: headerFont, alignment: headerAlign };
     }
   });
- 
+
   // Anchos de columna (del original)
   ws["!cols"] = [
     {wch:8},{wch:16},{wch:23},{wch:20},{wch:24},{wch:24},
@@ -479,20 +479,19 @@ function exportarExcel() {
     {wch:23},{wch:16},{wch:15},{wch:15},{wch:15},{wch:20},
     {wch:22},{wch:17}
   ];
- 
+
   // Altura de filas
   ws["!rows"] = [{ hpt:75 }, { hpt:71 }];
- 
+
   XLSX.utils.book_append_sheet(wb, ws, "LIVE");
- 
+
   XLSX.writeFile(wb, "reporte_peticiones.xlsx");
 }
- 
+
 // Registrar SW
 if ("serviceWorker" in navigator)
   navigator.serviceWorker.register("sw.js").catch(()=>{});
- 
+
 </script>
 </body>
-</html>
 </html>
